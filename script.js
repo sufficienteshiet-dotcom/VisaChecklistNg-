@@ -110,6 +110,76 @@ const fundingCombinationQuestion = {
 
 };
 
+const dependantEligibilityQuestions = [
+    {
+        id: "dedGovernmentSponsored",
+        title: "Are you receiving a scholarship or sponsorship from a government for your studies in the UK?",
+        description: "This can make you eligible to bring dependants if you are studying a full-time course that lasts 6 months or longer.",
+        options: [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
+    },
+
+    {
+        id: "dedGovernmentCourseLength",
+        title: "Is your full-time course 6 months or longer?",
+        description: "A government-sponsored Student may be eligible to bring dependants if the full-time course lasts 6 months or longer.",
+        options: [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
+    },
+
+    {
+        id: "dedPostgraduateLevel",
+        title: "Is your course at postgraduate level (RQF level 7 or above)?",
+        description: "For the postgraduate route, the course must be at postgraduate level (RQF level 7 or above).",
+        options: [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
+    },
+
+    {
+        id: "dedPostgraduateLength",
+        title: "Is your full-time postgraduate course 9 months or longer?",
+        description: "The postgraduate route requires a full-time postgraduate course lasting 9 months or longer.",
+        options: [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
+    },
+
+    {
+        id: "dedPostgraduateType",
+        title: "What does your CAS say about your postgraduate course?",
+        description: "For courses starting on or after 1 January 2024, the provider must confirm that the course is a PhD or other doctoral qualification, or a research-based higher degree.",
+        options: [
+            "PhD or other doctoral qualification",
+            "Research-based higher degree",
+            "Other / taught course",
+            "I'm not sure"
+        ]
+    }
+];
+
+function startDependantEligibilityDetermination() {
+
+    dedActive = true;
+
+    dedQuestionIndex = 0;
+
+    dedRoute = null;
+
+    renderQuestion();
+
+}
+
 const questions = [
 
 {
@@ -289,32 +359,33 @@ startBtn.addEventListener("click", () => {
 =========================== */
 
 backBtn.addEventListener("click", () => {
-    
-    if (insertedQuestion) {
 
-    insertedQuestion = null;
+    /* ===========================
+       DED BACK NAVIGATION
+    =========================== */
 
-    renderQuestion();
+    if (dedActive) {
 
-    return;
+        if (dedQuestionIndex > 0) {
 
-}
+    /*
+       If DED 1 was answered "No" or "Not sure",
+       the government-sponsored course-length question
+       (DED 2) was skipped.
 
-if (branchHistory.length > 0) {
-
-    const lastBranch = branchHistory[branchHistory.length - 1];
+       Therefore, going back from DED 3 must return
+       directly to DED 1.
+    */
 
     if (
-        (questions[currentQuestion].id === "funding" &&
-         lastBranch.id === "ecctis") ||
-
-        (questions[currentQuestion].id === "previousSponsor" &&
-         lastBranch.id === "fundingCombination")
+        dedQuestionIndex === 2 &&
+        (
+            answers.dedGovernmentSponsored === "No" ||
+            answers.dedGovernmentSponsored === "Not sure"
+        )
     ) {
 
-        insertedQuestion = branchHistory.pop();
-
-        currentQuestion--;
+        dedQuestionIndex = 0;
 
         renderQuestion();
 
@@ -322,7 +393,77 @@ if (branchHistory.length > 0) {
 
     }
 
+    dedQuestionIndex--;
+
+    renderQuestion();
+
+    return;
+
 }
+
+        // At DED 1 — leave DED and return to dependant-intent question
+
+        dedActive = false;
+
+        dedQuestionIndex = 0;
+
+        dedRoute = null;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+
+    /* ===========================
+       INSERTED QUESTION NAVIGATION
+    =========================== */
+
+    if (insertedQuestion) {
+
+        insertedQuestion = null;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+
+    /* ===========================
+       EXISTING BRANCH HISTORY
+    =========================== */
+
+    if (branchHistory.length > 0) {
+
+        const lastBranch =
+            branchHistory[branchHistory.length - 1];
+
+        if (
+            (questions[currentQuestion].id === "funding" &&
+             lastBranch.id === "ecctis") ||
+
+            (questions[currentQuestion].id === "previousSponsor" &&
+             lastBranch.id === "fundingCombination")
+        ) {
+
+            insertedQuestion = branchHistory.pop();
+
+            currentQuestion--;
+
+            renderQuestion();
+
+            return;
+
+        }
+
+    }
+
+
+    /* ===========================
+       NORMAL QUESTION NAVIGATION
+    =========================== */
 
     if (currentQuestion === 0) {
 
@@ -342,83 +483,76 @@ if (branchHistory.length > 0) {
 
 nextBtn.addEventListener("click", () => {
 
-        const currentQuestionData =
-    insertedQuestion || questions[currentQuestion];
+    const currentQuestionData = dedActive
+        ? dependantEligibilityQuestions[dedQuestionIndex]
+        : (insertedQuestion || questions[currentQuestion]);
 
-const selected = document.querySelector(
-    `input[name="${currentQuestionData.id}"]:checked`
-);
+    const selected = document.querySelector(
+        `input[name="${currentQuestionData.id}"]:checked`
+    );
 
-if (!selected) {
+    if (!selected) {
 
         alert("Please select an option before continuing.");
 
         return;
 
     }
-    
+
+
+    /* ===========================
+       DED QUESTION FLOW
+       =========================== */
+
+    if (dedActive) {
+
+
+        /* ===========================
+           DED 1 — GOVERNMENT SPONSOR
+        =========================== */
+
+        if (
+    currentQuestionData.id ===
+    "dedGovernmentSponsored"
+) {
+
     if (
-    currentQuestionData.id === "ecctis" &&
-    answers.ecctis === "No"
-) {
+        answers.dedGovernmentSponsored ===
+        "Yes"
+    ) {
 
-    showEcctisVerification();
+        dedRoute = "government";
 
-    return;
+        dedQuestionIndex = 1;
 
-}
-    
+        renderQuestion();
+
+        return;
+
+    }
+
     if (
-    currentQuestionData.id === "english" &&
-    answers.english === "Not sure"
-) {
+        answers.dedGovernmentSponsored ===
+        "Not sure"
+    ) {
 
-    showEnglishVerification();
+        showDEDGovernmentSponsorshipVerification();
 
-    return;
+        dedRoute = "postgraduate";
 
-}
+        dedQuestionIndex = 2;
 
-if (
-    currentQuestionData.id === "cas" &&
-    answers.cas === "No, I have not received my CAS"
-) {
+        renderQuestion();
 
-    showCASVerification();
+        return;
 
-    return;
+    }
 
-}
+    // "No" → check postgraduate route
 
-if (
-    currentQuestionData.id === "atas" &&
-    answers.atas === "I'm not sure"
-) {
+    dedRoute = "postgraduate";
 
-    showATASVerification();
-
-    return;
-
-}
-
-if (
-    currentQuestionData.id === "criminalRecord" &&
-    answers.criminalRecord === "I'm not sure"
-) {
-
-    showCriminalRecordVerification();
-
-    return;
-
-}
-
-if (
-    currentQuestionData.id === "english" &&
-    answers.english === "Degree taught in English" &&
-    insertedQuestion === null
-) {
-
-    insertedQuestion = ecctisQuestion;
+    dedQuestionIndex = 2;
 
     renderQuestion();
 
@@ -427,16 +561,51 @@ if (
 }
 
 
-    if (currentQuestion < questions.length - 1) {
-        
-        
+        /* ===========================
+   DED 2 — GOVERNMENT COURSE LENGTH
+=========================== */
+
 if (
-    questions[currentQuestion].id === "funding" &&
-    answers.funding === "Combination of funding sources" &&
-    insertedQuestion === null
+    currentQuestionData.id ===
+    "dedGovernmentCourseLength"
 ) {
 
-    insertedQuestion = fundingCombinationQuestion;
+    if (
+    answers.dedGovernmentCourseLength ===
+    "Yes"
+) {
+
+    dedRoute = "eligible";
+
+    showDEDEligibleResult();
+
+    return;
+
+}
+
+    if (
+        answers.dedGovernmentCourseLength ===
+        "Not sure"
+    ) {
+
+        showDEDGovernmentCourseLengthVerification();
+
+        dedRoute = "postgraduate";
+
+        dedQuestionIndex = 2;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+    // "No" → government route not satisfied.
+    // Continue to postgraduate route.
+
+    dedRoute = "postgraduate";
+
+    dedQuestionIndex = 2;
 
     renderQuestion();
 
@@ -444,33 +613,315 @@ if (
 
 }
 
-    if (insertedQuestion) {
+        /* ===========================
+   DED 3 — POSTGRADUATE LEVEL
+=========================== */
 
-    branchHistory.push(insertedQuestion);
+if (
+    currentQuestionData.id ===
+    "dedPostgraduateLevel"
+) {
 
-    insertedQuestion = null;
+    if (
+        answers.dedPostgraduateLevel ===
+        "Yes"
+    ) {
 
-    currentQuestion++;
+        dedRoute = "postgraduate";
 
-    renderQuestion();
+        dedQuestionIndex = 3;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+    if (
+        answers.dedPostgraduateLevel ===
+        "Not sure"
+    ) {
+
+        showDEDPostgraduateLevelVerification();
+
+        return;
+
+    }
+
+    // "No" → postgraduate route is not satisfied.
+
+dedRoute = "ineligible";
+
+showDEDIneligibleResult();
+
+return;
+
+}
+
+/* ===========================
+   DED 4 — POSTGRADUATE LENGTH
+=========================== */
+
+if (
+    currentQuestionData.id ===
+    "dedPostgraduateLength"
+) {
+
+    if (
+        answers.dedPostgraduateLength ===
+        "Yes"
+    ) {
+
+        dedRoute = "postgraduate";
+
+        dedQuestionIndex = 4;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+    if (
+        answers.dedPostgraduateLength ===
+        "Not sure"
+    ) {
+
+        showDEDPostgraduateLengthVerification();
+
+        return;
+
+    }
+
+    // "No" → postgraduate route is not satisfied.
+
+dedRoute = "ineligible";
+
+showDEDIneligibleResult();
+
+return;
+
+}
+
+
+        /* ===========================
+   DED 5 — POSTGRADUATE COURSE TYPE
+=========================== */
+
+if (
+    currentQuestionData.id ===
+    "dedPostgraduateType"
+) {
+
+    if (
+    answers.dedPostgraduateType ===
+    "PhD or other doctoral qualification" ||
+    answers.dedPostgraduateType ===
+    "Research-based higher degree"
+) {
+
+    dedRoute = "eligible";
+
+    showDEDEligibleResult();
 
     return;
 
 }
 
-currentQuestion++;
+    if (
+        answers.dedPostgraduateType ===
+        "I'm not sure"
+    ) {
 
-renderQuestion();
+        showDEDPostgraduateTypeVerification();
 
-} else {
-    
-    showPaymentSummary();
+        return;
 
-    questionPage.style.display = "none";
+    }
 
-    paymentPage.style.display = "flex";
+    // "Other / taught course" →
+// postgraduate route is not satisfied.
+
+dedRoute = "ineligible";
+
+showDEDIneligibleResult();
+
+return;
 
 }
+
+
+        /*
+         * VERY IMPORTANT:
+         * If DED is active, NEVER allow the
+         * normal Student questionnaire to run.
+         */
+
+        return;
+
+    }
+
+
+    /* ===========================
+       NORMAL QUESTION VERIFICATIONS
+       =========================== */
+
+    if (
+        currentQuestionData.id === "ecctis" &&
+        answers.ecctis === "No"
+    ) {
+
+        showEcctisVerification();
+
+        return;
+
+    }
+
+
+    if (
+        currentQuestionData.id === "english" &&
+        answers.english === "Not sure"
+    ) {
+
+        showEnglishVerification();
+
+        return;
+
+    }
+
+
+    if (
+        currentQuestionData.id === "cas" &&
+        answers.cas ===
+        "No, I have not received my CAS"
+    ) {
+
+        showCASVerification();
+
+        return;
+
+    }
+
+
+    if (
+        currentQuestionData.id === "atas" &&
+        answers.atas === "I'm not sure"
+    ) {
+
+        showATASVerification();
+
+        return;
+
+    }
+
+
+    /* ===========================
+       DEPENDANT INTENT → START DED
+       =========================== */
+
+    if (
+        currentQuestionData.id === "family" &&
+        (
+            answers.family === "Yes, my partner" ||
+            answers.family === "Yes, my child(ren)" ||
+            answers.family ===
+            "Yes, my partner and child(ren)"
+        )
+    ) {
+
+        startDependantEligibilityDetermination();
+
+        return;
+
+    }
+
+
+    /* ===========================
+       ENGLISH → ECCTIS BRANCH
+       =========================== */
+
+    if (
+        currentQuestionData.id === "english" &&
+        answers.english ===
+        "Degree taught in English" &&
+        insertedQuestion === null
+    ) {
+
+        insertedQuestion = ecctisQuestion;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+
+    /* ===========================
+       NORMAL QUESTION PROGRESSION
+       =========================== */
+
+    if (
+        currentQuestion <
+        questions.length - 1
+    ) {
+
+
+        /* ===========================
+           FUNDING → COMBINATION BRANCH
+        =========================== */
+
+        if (
+            questions[currentQuestion].id ===
+            "funding" &&
+            answers.funding ===
+            "Combination of funding sources" &&
+            insertedQuestion === null
+        ) {
+
+            insertedQuestion =
+                fundingCombinationQuestion;
+
+            renderQuestion();
+
+            return;
+
+        }
+
+
+        /* ===========================
+           INSERTED QUESTION HANDLING
+        =========================== */
+
+        if (insertedQuestion) {
+
+            branchHistory.push(
+                insertedQuestion
+            );
+
+            insertedQuestion = null;
+
+            currentQuestion++;
+
+            renderQuestion();
+
+            return;
+
+        }
+
+
+        currentQuestion++;
+
+        renderQuestion();
+
+    } else {
+
+        showPaymentSummary();
+
+        questionPage.style.display = "none";
+
+        paymentPage.style.display = "flex";
+
+    }
 
 });
 
@@ -909,27 +1360,35 @@ function buildChildrenChecklist() {
 
 function renderQuestion() {
 
-    const question = insertedQuestion || questions[currentQuestion];
-    questions[currentQuestion];
+    const question = dedActive
+        ? dependantEligibilityQuestions[dedQuestionIndex]
+        : (insertedQuestion || questions[currentQuestion]);
 
     questionTitle.textContent = question.title;
 
     questionDescription.textContent = question.description;
 
-    questionNumber.textContent = currentQuestion + 1;
-    
-    if (currentQuestion === questions.length - 1 && !insertedQuestion) {
+    questionNumber.textContent = dedActive
+        ? `DED ${dedQuestionIndex + 1}`
+        : currentQuestion + 1;
 
-    nextBtn.textContent = "Generate My Checklist";
+    if (
+        !dedActive &&
+        currentQuestion === questions.length - 1 &&
+        !insertedQuestion
+    ) {
 
-} else {
+        nextBtn.textContent = "Generate My Checklist";
 
-    nextBtn.textContent = "Next";
+    } else {
 
-}
+        nextBtn.textContent = "Next";
 
-    progressFill.style.width =
-        ((currentQuestion + 1) / questions.length) * 100 + "%";
+    }
+
+    progressFill.style.width = dedActive
+    ? ((dedQuestionIndex + 1) / dependantEligibilityQuestions.length) * 100 + "%"
+    : ((currentQuestion + 1) / questions.length) * 100 + "%";
 
     questionOptions.innerHTML = "";
 
@@ -940,26 +1399,26 @@ function renderQuestion() {
         label.className = "optionLabel";
 
         const checked =
-    answers[question.id] === option ? "checked" : "";
+            answers[question.id] === option ? "checked" : "";
 
-label.innerHTML = `
-    <input
-        type="radio"
-        name="${question.id}"
-        value="${option}"
-        ${checked}>
-    ${option}
-`;
+        label.innerHTML = `
+            <input
+                type="radio"
+                name="${question.id}"
+                value="${option}"
+                ${checked}>
+            ${option}
+        `;
 
         questionOptions.appendChild(label);
-        
+
         const radio = label.querySelector("input");
 
-radio.addEventListener("change", () => {
+        radio.addEventListener("change", () => {
 
-    answers[question.id] = radio.value;
+            answers[question.id] = radio.value;
 
-});
+        });
 
     });
 
@@ -1055,6 +1514,74 @@ Tap "Cancel" to go back and review your answer.`
 
 }
 
+function showDEDEligibleResult() {
+
+    alert(
+`Based on the information you provided, you appear to meet the requirements to bring your dependant(s) with you to the UK under the Student visa route.
+
+Your dependant questionnaire will come after you complete the main applicant's questionnaire.
+
+Separate checklists will be provided for you and your dependant(s).
+
+Tap "OK" to continue with the main applicant's questionnaire.`
+    );
+
+    dedActive = false;
+
+    dedQuestionIndex = 0;
+
+    dedRoute = null;
+
+    currentQuestion = 2;
+
+    renderQuestion();
+
+}
+
+function showDEDIneligibleResult() {
+
+    const proceed = confirm(
+`Based on the information you provided, you do not currently meet the requirements to bring dependant(s) with you under the UK Student visa route.
+
+Your answers did not establish either of the eligibility routes required under the current UK immigration rules.
+
+If you still wish to complete the Student visa questionnaire, you can continue with the main applicant's questionnaire. However, a dependant checklist will not be generated from this eligibility result.
+
+Tap "OK" to continue with the Student visa questionnaire.
+
+Tap "Cancel" to exit and return to the start page.`
+    );
+
+    if (proceed) {
+
+        dedActive = false;
+
+        dedQuestionIndex = 0;
+
+        dedRoute = null;
+
+        currentQuestion = 2;
+
+        renderQuestion();
+
+    } else {
+
+        dedActive = false;
+
+        dedQuestionIndex = 0;
+
+        dedRoute = null;
+
+        currentQuestion = 0;
+
+        questionPage.style.display = "none";
+
+        landingPage.style.display = "block";
+
+    }
+
+}
+
 function showEcctisVerification() {
 
     const proceed = confirm(
@@ -1078,6 +1605,73 @@ Press "Cancel" to return and update your answer.`
     renderQuestion();
 
 }
+
+}
+
+function showDEDGovernmentSponsorshipVerification() {
+
+    alert(
+        "Please verify your sponsorship details.\n\n" +
+        "To qualify under the government-sponsored route, " +
+        "your scholarship or sponsorship must be funded and " +
+        "provided by the UK government or your national government. " +
+        "Check your official sponsorship documentation to confirm " +
+        "who is providing the funding.\n\n" +
+        "Important: Funding from a university, employer, private " +
+        "organisation, family member, or other non-government " +
+        "source does not by itself satisfy this government-sponsored " +
+        "route."
+    );
+
+}
+
+function showDEDGovernmentCourseLengthVerification() {
+
+    alert(
+        "Please verify your course length.\n\n" +
+        "To qualify under the government-sponsored route, " +
+        "your Student visa course must be a full-time course " +
+        "lasting 6 months or longer. Check your CAS or official " +
+        "course information to confirm the duration of your course."
+    );
+
+}
+
+function showDEDPostgraduateLevelVerification() {
+
+    alert(
+        "Please verify your course level.\n\n" +
+        "For the postgraduate dependant route, your course must " +
+        "be at postgraduate level (RQF level 7 or above). Check " +
+        "your CAS or official course information to confirm the " +
+        "qualification level of your course."
+    );
+
+}
+
+function showDEDPostgraduateLengthVerification() {
+
+    alert(
+        "Please verify your course duration.\n\n" +
+        "For the postgraduate dependant route, your full-time " +
+        "postgraduate course must last 9 months or longer. " +
+        "Check your CAS or official course information to " +
+        "confirm the duration of your course."
+    );
+
+}
+
+function showDEDPostgraduateTypeVerification() {
+
+    alert(
+        "Please verify your course type.\n\n" +
+        "For courses starting on or after 1 January 2024, " +
+        "the postgraduate dependant route requires your course " +
+        "to be a PhD or other doctorate, or a research-based " +
+        "higher degree. Check your CAS or official course " +
+        "information to confirm the type of postgraduate course " +
+        "you are studying."
+    );
 
 }
 
