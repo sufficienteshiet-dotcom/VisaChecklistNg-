@@ -24,6 +24,12 @@ const generatedChecklist = document.getElementById("generatedChecklist");
 
 const paymentPage = document.getElementById("paymentPage");
 
+const dependantIntroPage =
+    document.getElementById("dependantIntroPage");
+
+const dependantIntroOkBtn =
+    document.getElementById("dependantIntroOkBtn");
+
 const paymentBackBtn = document.getElementById("paymentBackBtn");
 
 const summaryVisa = document.getElementById("summaryVisa");
@@ -915,13 +921,25 @@ return;
 
     } else {
 
-        showPaymentSummary();
+    questionPage.style.display = "none";
 
-        questionPage.style.display = "none";
+    if (
+        answers.family === "Yes, my partner" ||
+        answers.family === "Yes, my child(ren)" ||
+        answers.family === "Yes, my partner and child(ren)"
+    ) {
+
+        dependantIntroPage.style.display = "flex";
+
+    } else {
+
+        showPaymentSummary();
 
         paymentPage.style.display = "flex";
 
     }
+
+}
 
 });
 
