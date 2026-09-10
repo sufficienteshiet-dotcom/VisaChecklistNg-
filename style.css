@@ -591,3 +591,29 @@ button{
     outline: none;
     border-color: #0a8f4d;
 }
+
+.guidanceNote {
+    margin-top: 24px;
+    padding: 20px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-left: 5px solid #2563eb;
+    border-radius: 10px;
+    color: #172033;
+}
+
+.guidanceNote h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #172033;
+    font-size: 18px;
+}
+
+.guidanceNote p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.guidanceNote strong {
+    color: #172033;
+}

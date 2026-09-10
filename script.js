@@ -61,6 +61,11 @@ let dedActive = false;
 let dedQuestionIndex = 0;
 let dedRoute = null;
 
+let dependantActive = false;
+let dependantQuestionIndex = 0;
+
+let dependantEligible = false;
+
  const ecctisQuestion = {
 
     id: "ecctis",
@@ -181,6 +186,16 @@ function startDependantEligibilityDetermination() {
     dedQuestionIndex = 0;
 
     dedRoute = null;
+
+    renderQuestion();
+
+}
+
+function startDependantQuestionnaire() {
+
+    dependantActive = true;
+
+    dependantQuestionIndex = 0;
 
     renderQuestion();
 
@@ -336,6 +351,131 @@ const questions = [
 
 ];
 
+const dependantSpouseQuestions = [
+
+    {
+        id: "dependantRelationship",
+
+        title: "What is your relationship to the main Student?",
+
+        description: "",
+
+        options: [
+            "Married",
+            "Civil partner",
+            "Unmarried partner"
+        ]
+    },
+
+    {
+        id: "marriageCertificate",
+
+        title: "Do you have your marriage certificate?",
+
+        description:
+            "Your marriage certificate can be used as evidence of your relationship to the main Student.",
+
+        options: [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
+    },
+
+    {
+        id: "civilPartnershipCertificate",
+
+        title: "Do you have your civil partnership certificate?",
+
+        description:
+            "Your civil partnership certificate can be used as evidence of your relationship to the main Student.",
+
+        options: [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
+    },
+
+    {
+        id: "unmarriedPartnerTwoYears",
+
+        title: "Have you been in a relationship similar to marriage or civil partnership for at least 2 years?",
+
+        description:
+            "An unmarried partner must normally have been in a relationship similar to marriage or civil partnership for at least 2 years.",
+
+        options: [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
+    },
+
+    {
+        id: "unmarriedRelationshipEvidence",
+
+        title: "What evidence can you provide to demonstrate your relationship?",
+
+        description:
+            "Examples include evidence of living together, shared finances, or evidence of your ongoing relationship and commitment.",
+
+        options: [
+            "Evidence of living together",
+            "Evidence of shared finances",
+            "Evidence of ongoing relationship/commitment",
+            "Other supporting evidence",
+            "A combination of these"
+        ]
+    },
+    
+    {
+    id: "dependantGovernmentMaintenance",
+
+    title: "Does your government sponsorship letter confirm that your dependant's living costs are covered?",
+
+    description:
+        "If your Student visa sponsorship is from a government, check whether the sponsorship letter specifically confirms that your dependant's living costs are also covered.",
+
+    options: [
+        "Yes",
+        "No",
+        "I'm not sure"
+    ]
+},
+    
+        {
+        id: "dependantMaintenance",
+
+        title: "How will your dependant's required maintenance funds be provided?",
+
+        description:
+            "You may use your partner's own funds, funds provided by the main Student, or a combination of these.",
+
+        options: [
+            "My partner's own funds",
+            "Funds provided by the main Student",
+            "A combination of these",
+            "I'm not sure"
+        ]
+    },
+
+{
+    id: "dependantNonEnglishDocuments",
+
+        title: "Will any documents you're using to support your dependant application be in a language other than English or Welsh?",
+
+        description: "",
+
+        options: [
+            "Yes",
+            "No",
+            "Not sure"
+        ]
+    }
+
+];
+
 /* ===========================
    INITIAL STATE
 =========================== */
@@ -487,10 +627,22 @@ backBtn.addEventListener("click", () => {
 
 });
 
+dependantIntroOkBtn.addEventListener("click", () => {
+
+    dependantIntroPage.style.display = "none";
+
+    questionPage.style.display = "flex";
+
+    startDependantQuestionnaire();
+
+});
+
 nextBtn.addEventListener("click", () => {
 
     const currentQuestionData = dedActive
-        ? dependantEligibilityQuestions[dedQuestionIndex]
+    ? dependantEligibilityQuestions[dedQuestionIndex]
+    : dependantActive
+        ? dependantSpouseQuestions[dependantQuestionIndex]
         : (insertedQuestion || questions[currentQuestion]);
 
     const selected = document.querySelector(
@@ -504,9 +656,178 @@ nextBtn.addEventListener("click", () => {
         return;
 
     }
-
-
+    
     /* ===========================
+   DEPENDANT QUESTION FLOW
+   =========================== */
+
+if (dependantActive) {
+
+    if (currentQuestionData.id === "dependantRelationship") {
+
+        if (selected.value === "Married") {
+
+            dependantQuestionIndex = 1;
+
+        } else if (selected.value === "Civil partner") {
+
+            dependantQuestionIndex = 2;
+
+        } else if (selected.value === "Unmarried partner") {
+
+            dependantQuestionIndex = 3;
+
+        }
+
+        renderQuestion();
+
+        return;
+
+    }
+
+
+    if (currentQuestionData.id === "marriageCertificate") {
+
+        dependantQuestionIndex =
+    answers.dedGovernmentSponsored === "Yes"
+        ? 5
+        : 6;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+
+    if (currentQuestionData.id === "civilPartnershipCertificate") {
+
+        dependantQuestionIndex =
+    answers.dedGovernmentSponsored === "Yes"
+        ? 5
+        : 6;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+
+    if (currentQuestionData.id === "unmarriedPartnerTwoYears") {
+
+        if (selected.value === "Yes") {
+
+            dependantQuestionIndex = 4;
+
+            renderQuestion();
+
+            return;
+
+        }
+
+        if (selected.value === "No") {
+
+            alert(
+                "Based on the information provided, you do not currently meet the relationship requirements for an unmarried partner dependant application."
+            );
+
+            return;
+
+        }
+
+        if (selected.value === "Not sure") {
+
+            alert(
+                "Please verify whether your relationship meets the 2-year requirement before continuing."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    if (currentQuestionData.id === "unmarriedRelationshipEvidence") {
+
+        dependantQuestionIndex =
+    answers.dedGovernmentSponsored === "Yes"
+        ? 5
+        : 6;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+
+    if (currentQuestionData.id === "dependantGovernmentMaintenance") {
+
+        if (selected.value === "Yes") {
+
+            // Government sponsorship covers the dependant.
+            // Skip the normal maintenance question.
+
+            dependantQuestionIndex = 7;
+
+            renderQuestion();
+
+            return;
+
+        }
+
+        if (selected.value === "No") {
+
+            // Normal maintenance requirement applies.
+
+            dependantQuestionIndex = 6;
+
+            renderQuestion();
+
+            return;
+
+        }
+
+        if (selected.value === "I'm not sure") {
+
+            alert(
+                "Please verify whether your government sponsorship letter confirms that your dependant's living costs are covered before continuing."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    if (currentQuestionData.id === "dependantMaintenance") {
+
+        dependantQuestionIndex = 7;
+
+        renderQuestion();
+
+        return;
+
+    }
+
+
+    if (currentQuestionData.id === "dependantNonEnglishDocuments") {
+
+        dependantActive = false;
+
+        showPaymentSummary();
+
+        return;
+
+    }
+
+}
+
+
+/* ===========================
        DED QUESTION FLOW
        =========================== */
 
@@ -728,9 +1049,11 @@ if (
 
     dedRoute = "eligible";
 
-    showDEDEligibleResult();
+dependantEligible = true;
 
-    return;
+showDEDEligibleResult();
+
+return;
 
 }
 
@@ -749,6 +1072,8 @@ if (
 // postgraduate route is not satisfied.
 
 dedRoute = "ineligible";
+
+dependantEligible = false;
 
 showDEDIneligibleResult();
 
@@ -923,11 +1248,7 @@ return;
 
     questionPage.style.display = "none";
 
-    if (
-        answers.family === "Yes, my partner" ||
-        answers.family === "Yes, my child(ren)" ||
-        answers.family === "Yes, my partner and child(ren)"
-    ) {
+    if (dependantEligible) {
 
         dependantIntroPage.style.display = "flex";
 
@@ -964,6 +1285,48 @@ function generateChecklist() {
         case "Student Visa (Higher Education)":
 
             checklistHTML += buildStudentChecklist();
+
+            checklistHTML += `
+                <div class="guidanceNote">
+
+                    <h3>Maintenance Funds – Check Your Study Location</h3>
+
+                    <p>
+                        Your Student visa application requires separate funds
+                        for your living costs in addition to any unpaid
+                        tuition fees.
+                    </p>
+
+                    <p>
+                        The required maintenance amount depends on the
+                        location of your <strong>main study site</strong>:
+                    </p>
+
+                    <p>
+                        <strong>Applications made before 30 November 2026</strong><br>
+                        • London: £1,529 per month, for up to 9 months<br>
+                        • Outside London: £1,171 per month, for up to 9 months
+                    </p>
+
+                    <p>
+                        <strong>Applications made on or after 30 November 2026</strong><br>
+                        • London: £1,570 per month, for up to 9 months<br>
+                        • Outside London: £1,203 per month, for up to 9 months
+                    </p>
+
+                    <p>
+                        Check your CAS/course information to confirm your
+                        main study location and use the maintenance rate
+                        applicable to your application date.
+                    </p>
+
+                    <p>
+                        <strong>Important:</strong> The maintenance requirement
+                        is for living costs and is separate from your tuition fees.
+                    </p>
+
+                </div>
+            `;
 
             break;
 
@@ -1379,7 +1742,9 @@ function buildChildrenChecklist() {
 function renderQuestion() {
 
     const question = dedActive
-        ? dependantEligibilityQuestions[dedQuestionIndex]
+    ? dependantEligibilityQuestions[dedQuestionIndex]
+    : dependantActive
+        ? dependantSpouseQuestions[dependantQuestionIndex]
         : (insertedQuestion || questions[currentQuestion]);
 
     questionTitle.textContent = question.title;
@@ -1391,18 +1756,27 @@ function renderQuestion() {
         : currentQuestion + 1;
 
     if (
-        !dedActive &&
-        currentQuestion === questions.length - 1 &&
-        !insertedQuestion
-    ) {
+    !dedActive &&
+    !dependantActive &&
+    currentQuestion === questions.length - 1 &&
+    !insertedQuestion
+) {
 
-        nextBtn.textContent = "Generate My Checklist";
-
-    } else {
+    if (dependantEligible) {
 
         nextBtn.textContent = "Next";
 
+    } else {
+
+        nextBtn.textContent = "Generate My Checklist";
+
     }
+
+} else {
+
+    nextBtn.textContent = "Next";
+
+}
 
     progressFill.style.width = dedActive
     ? ((dedQuestionIndex + 1) / dependantEligibilityQuestions.length) * 100 + "%"
@@ -1534,6 +1908,8 @@ Tap "Cancel" to go back and review your answer.`
 
 function showDEDEligibleResult() {
 
+    dependantEligible = true;
+
     alert(
 `Based on the information you provided, you appear to meet the requirements to bring your dependant(s) with you to the UK under the Student visa route.
 
@@ -1557,6 +1933,8 @@ Tap "OK" to continue with the main applicant's questionnaire.`
 }
 
 function showDEDIneligibleResult() {
+
+    dependantEligible = false;
 
     const proceed = confirm(
 `Based on the information you provided, you do not currently meet the requirements to bring dependant(s) with you under the UK Student visa route.
@@ -1709,45 +2087,77 @@ function showPaymentSummary() {
 
     summaryVisa.textContent = answers.visaRoute || "-";
 
-    if (answers.family === "No, just me") {
 
-    summaryApplicant.textContent = "Just me";
+    /* ===========================
+       MAIN APPLICANT ONLY
+       =========================== */
 
-} else if (answers.family === "Yes, my partner") {
+    if (
+        dependantEligible === false
+    ) {
 
-    summaryApplicant.textContent = "Me and partner";
+        summaryApplicant.textContent =
+            "Just me";
 
-} else if (answers.family === "Yes, my child(ren)") {
+        summaryPrice.textContent =
+            "₦2,500";
 
-    summaryApplicant.textContent = "Me and child(ren)";
+        return;
 
-} else if (answers.family === "Yes, my partner and child(ren)") {
+    }
 
-    summaryApplicant.textContent = "Me, partner and child(ren)";
 
-} else {
+    /* ===========================
+       DEPENDANT-ELIGIBLE APPLICATION
+       =========================== */
 
-    summaryApplicant.textContent = answers.family || "-";
+    if (
+        answers.family === "No, just me"
+    ) {
 
-}
+        summaryApplicant.textContent =
+            "Just me";
 
-if (answers.family === "No, just me") {
+        summaryPrice.textContent =
+            "₦2,500";
 
-    summaryPrice.textContent = "₦2,500";
+    } else if (
+        answers.family === "Yes, my partner"
+    ) {
 
-} else if (answers.family === "Yes, my partner") {
+        summaryApplicant.textContent =
+            "Me and partner";
 
-    summaryPrice.textContent = "₦4,500";
+        summaryPrice.textContent =
+            "₦4,500";
 
-} else if (answers.family === "Yes, my child(ren)") {
+    } else if (
+        answers.family === "Yes, my child(ren)"
+    ) {
 
-    summaryPrice.textContent = "₦4,000";
+        summaryApplicant.textContent =
+            "Me and child(ren)";
 
-} else if (answers.family === "Yes, my partner and child(ren)") {
+        summaryPrice.textContent =
+            "₦4,000";
 
-    summaryPrice.textContent = "₦5,000";
+    } else if (
+        answers.family ===
+        "Yes, my partner and child(ren)"
+    ) {
 
-}
+        summaryApplicant.textContent =
+            "Me, partner and child(ren)";
+
+        summaryPrice.textContent =
+            "₦5,000";
+
+    } else {
+
+        summaryApplicant.textContent =
+            answers.family || "-";
+
+    }
 
 }
 
