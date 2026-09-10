@@ -617,3 +617,7 @@ button{
 .guidanceNote strong {
     color: #172033;
 }
+
+#dependantIntroBackBtn {
+    margin-top: 16px;
+}

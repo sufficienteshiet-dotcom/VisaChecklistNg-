@@ -30,6 +30,9 @@ const dependantIntroPage =
 const dependantIntroOkBtn =
     document.getElementById("dependantIntroOkBtn");
 
+const dependantIntroBackBtn =
+    document.getElementById("dependantIntroBackBtn");
+    
 const paymentBackBtn = document.getElementById("paymentBackBtn");
 
 const summaryVisa = document.getElementById("summaryVisa");
@@ -514,40 +517,43 @@ backBtn.addEventListener("click", () => {
 
         if (dedQuestionIndex > 0) {
 
-    /*
-       If DED 1 was answered "No" or "Not sure",
-       the government-sponsored course-length question
-       (DED 2) was skipped.
+            /*
+               If DED 1 was answered "No" or "Not sure",
+               DED 2 was skipped.
 
-       Therefore, going back from DED 3 must return
-       directly to DED 1.
-    */
+               Therefore, going back from DED 3
+               must return directly to DED 1.
+            */
 
-    if (
-        dedQuestionIndex === 2 &&
-        (
-            answers.dedGovernmentSponsored === "No" ||
-            answers.dedGovernmentSponsored === "Not sure"
-        )
-    ) {
+            if (
+                dedQuestionIndex === 2 &&
+                (
+                    answers.dedGovernmentSponsored === "No" ||
+                    answers.dedGovernmentSponsored === "Not sure"
+                )
+            ) {
 
-        dedQuestionIndex = 0;
+                dedQuestionIndex = 0;
 
-        renderQuestion();
+                renderQuestion();
 
-        return;
+                return;
 
-    }
+            }
 
-    dedQuestionIndex--;
+            dedQuestionIndex--;
 
-    renderQuestion();
+            renderQuestion();
 
-    return;
+            return;
 
-}
+        }
 
-        // At DED 1 — leave DED and return to dependant-intent question
+
+        /*
+           At DED 1 — leave DED and return
+           to the dependant-intent question.
+        */
 
         dedActive = false;
 
@@ -558,6 +564,217 @@ backBtn.addEventListener("click", () => {
         renderQuestion();
 
         return;
+
+    }
+
+
+    /* ===========================
+       DEPENDANT BACK NAVIGATION
+    =========================== */
+
+    if (dependantActive) {
+
+        /*
+           If we are on dependant Question 1,
+           go back to the dependant intro page.
+        */
+
+        if (dependantQuestionIndex === 0) {
+
+            dependantActive = false;
+
+            dependantQuestionIndex = 0;
+
+            questionPage.style.display = "none";
+
+            dependantIntroPage.style.display = "flex";
+
+            return;
+
+        }
+
+
+        /*
+           Normal dependant question navigation.
+        */
+
+        if (dependantQuestionIndex > 0) {
+
+            /*
+               Relationship branching:
+
+               Q2 = Married certificate
+               Q3 = Civil partnership certificate
+               Q4 = Unmarried 2-year relationship
+
+               Going back from any of these should
+               return to Q1.
+            */
+
+            if (
+                dependantQuestionIndex === 1 ||
+                dependantQuestionIndex === 2 ||
+                dependantQuestionIndex === 3
+            ) {
+
+                dependantQuestionIndex = 0;
+
+                renderQuestion();
+
+                return;
+
+            }
+
+
+            /*
+               Going back from the relationship
+               evidence question returns to the
+               unmarried-partner question.
+            */
+
+            if (
+                dependantQuestionIndex === 4
+            ) {
+
+                dependantQuestionIndex = 3;
+
+                renderQuestion();
+
+                return;
+
+            }
+
+
+            /*
+               Going back from the government
+               sponsorship question returns to the
+               relationship branch that led here.
+            */
+
+            if (
+                dependantQuestionIndex === 5
+            ) {
+
+                if (
+                    answers.dependantRelationship ===
+                    "Married"
+                ) {
+
+                    dependantQuestionIndex = 1;
+
+                } else if (
+                    answers.dependantRelationship ===
+                    "Civil partner"
+                ) {
+
+                    dependantQuestionIndex = 2;
+
+                } else if (
+                    answers.dependantRelationship ===
+                    "Unmarried partner"
+                ) {
+
+                    dependantQuestionIndex = 4;
+
+                }
+
+                renderQuestion();
+
+                return;
+
+            }
+
+
+            /*
+               Going back from normal maintenance
+               returns to the government sponsorship
+               question if that route was active.
+            */
+
+            if (
+                dependantQuestionIndex === 6
+            ) {
+
+                if (
+                    answers.dedGovernmentSponsored ===
+                    "Yes"
+                ) {
+
+                    dependantQuestionIndex = 5;
+
+                } else {
+
+                    if (
+                        answers.dependantRelationship ===
+                        "Married"
+                    ) {
+
+                        dependantQuestionIndex = 1;
+
+                    } else if (
+                        answers.dependantRelationship ===
+                        "Civil partner"
+                    ) {
+
+                        dependantQuestionIndex = 2;
+
+                    } else if (
+                        answers.dependantRelationship ===
+                        "Unmarried partner"
+                    ) {
+
+                        dependantQuestionIndex = 4;
+
+                    }
+
+                }
+
+                renderQuestion();
+
+                return;
+
+            }
+
+
+            /*
+               Going back from the final translation
+               question returns to the appropriate
+               maintenance question.
+            */
+
+            if (
+                dependantQuestionIndex === 7
+            ) {
+
+                if (
+                    answers.dedGovernmentSponsored ===
+                    "Yes" &&
+                    answers.dependantGovernmentMaintenance ===
+                    "Yes"
+                ) {
+
+                    dependantQuestionIndex = 5;
+
+                } else {
+
+                    dependantQuestionIndex = 6;
+
+                }
+
+                renderQuestion();
+
+                return;
+
+            }
+
+
+            dependantQuestionIndex--;
+
+            renderQuestion();
+
+            return;
+
+        }
 
     }
 
@@ -637,6 +854,24 @@ dependantIntroOkBtn.addEventListener("click", () => {
 
 });
 
+dependantIntroBackBtn.addEventListener("click", () => {
+
+    dependantIntroPage.style.display = "none";
+
+    dependantActive = false;
+
+    dependantQuestionIndex = 0;
+
+    currentQuestion = questions.length - 1;
+
+    insertedQuestion = null;
+
+    questionPage.style.display = "flex";
+
+    renderQuestion();
+
+});
+
 nextBtn.addEventListener("click", () => {
 
     const currentQuestionData = dedActive
@@ -646,16 +881,21 @@ nextBtn.addEventListener("click", () => {
         : (insertedQuestion || questions[currentQuestion]);
 
     const selected = document.querySelector(
-        `input[name="${currentQuestionData.id}"]:checked`
-    );
+    `input[name="${currentQuestionData.id}"]:checked`
+);
 
-    if (!selected) {
+const selectedValue =
+    selected
+        ? selected.value
+        : answers[currentQuestionData.id];
 
-        alert("Please select an option before continuing.");
+if (!selectedValue) {
 
-        return;
+    alert("Please select an option before continuing.");
 
-    }
+    return;
+
+}
     
     /* ===========================
    DEPENDANT QUESTION FLOW
@@ -816,13 +1056,21 @@ if (dependantActive) {
 
     if (currentQuestionData.id === "dependantNonEnglishDocuments") {
 
-        dependantActive = false;
+    dependantActive = false;
 
-        showPaymentSummary();
+    dependantQuestionIndex = 0;
 
-        return;
+    dependantIntroPage.style.display = "none";
 
-    }
+    questionPage.style.display = "none";
+
+    showPaymentSummary();
+
+    paymentPage.style.display = "flex";
+
+    return;
+
+}
 
 }
 
@@ -1752,7 +2000,9 @@ function renderQuestion() {
     questionDescription.textContent = question.description;
 
     questionNumber.textContent = dedActive
-        ? `DED ${dedQuestionIndex + 1}`
+    ? `DED ${dedQuestionIndex + 1}`
+    : dependantActive
+        ? dependantQuestionIndex + 1
         : currentQuestion + 1;
 
     if (
@@ -1780,7 +2030,9 @@ function renderQuestion() {
 
     progressFill.style.width = dedActive
     ? ((dedQuestionIndex + 1) / dependantEligibilityQuestions.length) * 100 + "%"
-    : ((currentQuestion + 1) / questions.length) * 100 + "%";
+    : dependantActive
+        ? ((dependantQuestionIndex + 1) / dependantSpouseQuestions.length) * 100 + "%"
+        : ((currentQuestion + 1) / questions.length) * 100 + "%";
 
     questionOptions.innerHTML = "";
 
@@ -2074,8 +2326,11 @@ function showDEDPostgraduateTypeVerification() {
 paymentBackBtn.addEventListener("click", () => {
 
     paymentPage.style.display = "none";
-    
-    showPaymentSummary();
+
+    dependantActive = true;
+
+    dependantQuestionIndex =
+        dependantSpouseQuestions.length - 1;
 
     questionPage.style.display = "flex";
 
