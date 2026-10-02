@@ -296,6 +296,8 @@ button:hover{
 
     justify-content:space-between;
 
+    gap:16px;
+
     margin-top:35px;
 
 }

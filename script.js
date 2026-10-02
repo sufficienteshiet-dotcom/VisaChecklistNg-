@@ -126,15 +126,17 @@ const fundingCombinationQuestion = {
 
 const dependantEligibilityQuestions = [
     {
-        id: "dedGovernmentSponsored",
-        title: "Are you receiving a scholarship or sponsorship from a government for your studies in the UK?",
-        description: "This can make you eligible to bring dependants if you are studying a full-time course that lasts 6 months or longer.",
-        options: [
-            "Yes",
-            "No",
-            "Not sure"
-        ]
-    },
+    id: "dedGovernmentSponsored",
+    title: "Are you receiving a scholarship or sponsorship from a national government for your studies in the UK?",
+    description:
+        "A qualifying government scholarship or sponsorship can make you eligible to bring dependants if you are studying a full-time course that lasts 6 months or longer. The sponsorship does not have to cover all of your tuition and living costs.",
+    options: [
+        "Yes, fully sponsored by the government",
+        "Yes, partly sponsored by the government",
+        "No",
+        "Not sure"
+    ]
+},
 
     {
         id: "dedGovernmentCourseLength",
@@ -291,7 +293,7 @@ const questions = [
 
     "My Parent(s) or legal Guardian is funding me",
 
-    "I have an official financial sponsor (Government, Employer, or University Scholarship)",
+    "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)",
     
     "I am using a student loan",
 
@@ -434,12 +436,9 @@ const dependantSpouseQuestions = [
     
     {
     id: "dependantGovernmentMaintenance",
-
-    title: "Does your government sponsorship letter confirm that your dependant's living costs are covered?",
-
+    title: "Does your financial sponsorship letter confirm that your dependant's living costs are covered?",
     description:
-        "If your Student visa sponsorship is from a government, check whether the sponsorship letter specifically confirms that your dependant's living costs are also covered.",
-
+        "Check whether your official financial sponsorship letter specifically confirms that your dependant's living costs are covered.",
     options: [
         "Yes",
         "No",
@@ -928,24 +927,60 @@ if (dependantActive) {
 
     if (currentQuestionData.id === "marriageCertificate") {
 
-        dependantQuestionIndex =
-    answers.dedGovernmentSponsored === "Yes"
-        ? 5
-        : 6;
+    if (selected.value === "No") {
 
-        renderQuestion();
+        alert(
+`MARRIAGE CERTIFICATE REQUIRED
 
-        return;
+A marriage certificate is the primary evidence used to prove a marriage for a dependant partner application.
+
+If you are legally married but do not currently have your marriage certificate, you should obtain an official copy or other acceptable official evidence of the marriage before submitting the application.
+
+If your marriage took place outside the UK, the evidence should be an appropriate equivalent that is valid under the law of the country where the marriage took place.
+
+Important: Do not rely on informal evidence such as photographs, messages or wedding invitations as a substitute for official marriage evidence where an official marriage certificate or equivalent is available.
+
+If your document is not in English or Welsh, you may need a certified translation.`
+        );
 
     }
+
+    if (selected.value === "Not sure") {
+
+        alert(
+`CHECK YOUR MARRIAGE EVIDENCE
+
+For a married dependant partner application, you should normally have official evidence of the marriage, such as a marriage certificate or an acceptable equivalent.
+
+Check whether you have the official marriage certificate/equivalent issued by the relevant authority and whether it identifies both spouses and the relevant marriage details.
+
+If your marriage took place outside the UK, make sure the document is valid under the law of the country where the marriage took place.
+
+If you are still unsure whether your document is acceptable, verify it before submitting the application.
+
+If the document is not in English or Welsh, you may need a certified translation.`
+        );
+
+    }
+
+    dependantQuestionIndex =
+        answers.funding ===
+    "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)"
+    ? 5
+    : 6;
+
+    renderQuestion();
+    return;
+}
 
 
     if (currentQuestionData.id === "civilPartnershipCertificate") {
 
         dependantQuestionIndex =
-    answers.dedGovernmentSponsored === "Yes"
-        ? 5
-        : 6;
+    answers.funding ===
+    "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)"
+    ? 5
+    : 6;
 
         renderQuestion();
 
@@ -992,9 +1027,10 @@ if (dependantActive) {
     if (currentQuestionData.id === "unmarriedRelationshipEvidence") {
 
         dependantQuestionIndex =
-    answers.dedGovernmentSponsored === "Yes"
-        ? 5
-        : 6;
+    answers.funding ===
+    "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)"
+    ? 5
+    : 6;
 
         renderQuestion();
 
@@ -1031,45 +1067,73 @@ if (dependantActive) {
         }
 
         if (selected.value === "I'm not sure") {
-
-            alert(
-                "Please verify whether your government sponsorship letter confirms that your dependant's living costs are covered before continuing."
-            );
-
-            return;
-
-        }
+    alert(
+        "Please verify whether your financial sponsorship letter confirms that your dependant's living costs are covered before continuing."
+    );
+    return;
+}
 
     }
 
 
     if (currentQuestionData.id === "dependantMaintenance") {
 
-        dependantQuestionIndex = 7;
+    if (selected.value === "I'm not sure") {
 
-        renderQuestion();
+        alert(
+`CHECK YOUR DEPENDANT'S MAINTENANCE FUNDS
 
-        return;
+Your dependant normally needs to meet a separate financial requirement in addition to the funds required for the main Student.
+
+The required amount is:
+
+£845 per month if the Student will study in London, or
+£680 per month if the Student will study outside London.
+
+This is normally required for up to 9 months, or for the shorter period of permission being applied for.
+
+The required funds can be held by either the dependant or the main Student, provided the financial requirements are met.
+
+The funds must be in addition to the funds required for the main Student and any other dependant. They normally also need to have been held for 28 consecutive days before the application, subject to the applicable financial-evidence rules.
+
+If you're unsure whether the funds available to you meet the requirement, verify this before submitting the application.`
+        );
 
     }
+
+    dependantQuestionIndex = 7;
+
+    renderQuestion();
+
+    return;
+}
 
 
     if (currentQuestionData.id === "dependantNonEnglishDocuments") {
 
+    if (selectedValue === "Not sure") {
+
+        alert(
+`CHECK YOUR DOCUMENTS
+
+Any document you provide to support your dependant's application that is not in English or Welsh must normally be accompanied by a certified translation.
+
+The translation must meet the Home Office requirements, including confirmation that it is an accurate translation, the date of translation, the translator's or translation company's details, and the required signature/contact details.
+
+If you are unsure whether any of your documents require translation, check the language of each document before submitting your application.`
+        );
+
+        return;
+    }
+
     dependantActive = false;
-
     dependantQuestionIndex = 0;
-
     dependantIntroPage.style.display = "none";
-
     questionPage.style.display = "none";
-
     showPaymentSummary();
-
     paymentPage.style.display = "flex";
 
     return;
-
 }
 
 }
@@ -1086,53 +1150,57 @@ if (dependantActive) {
            DED 1 — GOVERNMENT SPONSOR
         =========================== */
 
-        if (
-    currentQuestionData.id ===
-    "dedGovernmentSponsored"
-) {
+        if (currentQuestionData.id === "dedGovernmentSponsored") {
 
     if (
-        answers.dedGovernmentSponsored ===
-        "Yes"
+        selected.value ===
+        "Yes, fully sponsored by the government"
     ) {
 
-        dedRoute = "government";
+        dependantEligible = null;
 
         dedQuestionIndex = 1;
 
         renderQuestion();
 
         return;
-
     }
 
     if (
-        answers.dedGovernmentSponsored ===
-        "Not sure"
+        selected.value ===
+        "Yes, partly sponsored by the government"
     ) {
 
-        showDEDGovernmentSponsorshipVerification();
+        dependantEligible = null;
 
-        dedRoute = "postgraduate";
+        dedQuestionIndex = 1;
+
+        renderQuestion();
+
+        return;
+    }
+
+    if (selected.value === "No") {
 
         dedQuestionIndex = 2;
 
         renderQuestion();
 
         return;
-
     }
 
-    // "No" → check postgraduate route
+    if (selected.value === "Not sure") {
 
-    dedRoute = "postgraduate";
+        alert(
+`CHECK YOUR GOVERNMENT SPONSORSHIP
 
-    dedQuestionIndex = 2;
+To qualify for dependants through the government-sponsored Student route, your scholarship or sponsorship must be funded by a national government.
 
-    renderQuestion();
+If you are unsure whether your scholarship or sponsorship qualifies, verify this with your official sponsor before continuing.`
+        );
 
-    return;
-
+        return;
+    }
 }
 
 
@@ -1448,6 +1516,40 @@ return;
         /* ===========================
            FUNDING → COMBINATION BRANCH
         =========================== */
+if (
+    !dedActive &&
+    !dependantActive &&
+    currentQuestionData.id === "funding" &&
+    dependantEligible
+) {
+
+    const officialSponsorship =
+        "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)";
+
+    const governmentDependantRoute =
+        answers.dedGovernmentSponsored === "Yes" &&
+        answers.dedGovernmentCourseLength === "Yes";
+
+    if (
+        governmentDependantRoute &&
+        selectedValue !== officialSponsorship
+    ) {
+
+        alert(
+`DEPENDANT ELIGIBILITY NEEDS TO BE REVIEWED
+
+Earlier, you indicated that you qualify to bring dependant(s) through the government-sponsored Student route.
+
+However, the funding option you have selected does not indicate that your studies are being funded through the government sponsorship on which that eligibility was based.
+
+If you are not receiving qualifying government sponsorship, you may not meet the requirements to bring dependant(s) under this route.
+
+Please review your funding information before continuing.`
+        );
+
+        return;
+    }
+}
 
         if (
             questions[currentQuestion].id ===
@@ -1724,8 +1826,8 @@ if (
 
 // OFFICIAL FINANCIAL SPONSOR
 if (
-    funding === "I have an official financial sponsor (Government, Employer, or University Scholarship)" ||
-    funding.includes("Official Financial Sponsor")
+    funding ===
+    "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)"
 ) {
     html += `
         <ul>
