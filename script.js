@@ -64,6 +64,22 @@ let dedActive = false;
 let dedQuestionIndex = 0;
 let dedRoute = null;
 
+function isGovernmentSponsoredDependantRoute() {
+
+    return (
+        (
+            answers.dedGovernmentSponsored ===
+                "Yes, fully sponsored by the government"
+            ||
+            answers.dedGovernmentSponsored ===
+                "Yes, partly sponsored by the government"
+        )
+        &&
+        answers.dedGovernmentCourseLength === "Yes"
+    );
+
+}
+
 let dependantActive = false;
 let dependantQuestionIndex = 0;
 
@@ -361,7 +377,7 @@ const dependantSpouseQuestions = [
     {
         id: "dependantRelationship",
 
-        title: "What is your relationship to the main Student?",
+        title: "What is the dependant's relationship to the main Student?",
 
         description: "",
 
@@ -900,6 +916,81 @@ if (!selectedValue) {
    DEPENDANT QUESTION FLOW
    =========================== */
 
+if (
+    !dedActive &&
+    !dependantActive &&
+    currentQuestionData.id === "funding"
+) {
+
+    const fullySponsored =
+        answers.dedGovernmentSponsored ===
+        "Yes, fully sponsored by the government";
+
+    const partlySponsored =
+        answers.dedGovernmentSponsored ===
+        "Yes, partly sponsored by the government";
+
+    const governmentDependantRoute =
+        (
+            fullySponsored ||
+            partlySponsored
+        ) &&
+        answers.dedGovernmentCourseLength === "Yes";
+
+    const officialSponsorship =
+        "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)";
+
+    const combinationFunding =
+        "Combination of funding sources";
+
+
+    if (
+        governmentDependantRoute &&
+        fullySponsored &&
+        selectedValue !== officialSponsorship
+    ) {
+
+        alert(
+`YOUR FUNDING ANSWER DOES NOT MATCH YOUR PREVIOUS ANSWER
+
+You previously indicated that your studies are fully sponsored by the government.
+
+If that is correct, select:
+
+"I have official financial sponsorship..."
+
+If your government sponsorship does not actually cover all of your study funding, go back and review your previous answer.`
+        );
+
+        return;
+    }
+
+
+    if (
+        governmentDependantRoute &&
+        partlySponsored &&
+        selectedValue !== combinationFunding
+    ) {
+
+        alert(
+`YOUR FUNDING ANSWER DOES NOT MATCH YOUR PREVIOUS ANSWER
+
+You previously indicated that your studies are partly sponsored by the government.
+
+If that is correct, select:
+
+"Combination of funding sources"
+
+This is because your government sponsorship forms part of your funding while another source provides the remaining funding.
+
+If this is not correct, go back and review your previous answer.`
+        );
+
+        return;
+    }
+
+}
+
 if (dependantActive) {
 
     if (currentQuestionData.id === "dependantRelationship") {
@@ -958,38 +1049,68 @@ If your marriage took place outside the UK, make sure the document is valid unde
 
 If you are still unsure whether your document is acceptable, verify it before submitting the application.
 
-If the document is not in English or Welsh, you may need a certified translation.`
+If your document is not in English or Welsh, you may need a certified translation.`
         );
 
     }
 
     dependantQuestionIndex =
-        answers.funding ===
-    "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)"
-    ? 5
-    : 6;
+        isGovernmentSponsoredDependantRoute()
+            ? 5
+            : 6;
 
     renderQuestion();
     return;
 }
 
+if (currentQuestionData.id === "civilPartnershipCertificate") {
 
-    if (currentQuestionData.id === "civilPartnershipCertificate") {
+    if (selected.value === "No") {
 
-        dependantQuestionIndex =
-    answers.funding ===
-    "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)"
-    ? 5
-    : 6;
+        alert(
+`CIVIL PARTNERSHIP CERTIFICATE
 
-        renderQuestion();
+You have indicated that you do not have your civil partnership certificate.
 
-        return;
+This document is commonly used to prove your legal relationship with the main Student visa applicant.
+
+If your civil partnership has been legally registered, contact the relevant registration authority to obtain an official certificate or replacement copy.
+
+If your civil partnership was registered outside the UK, check which official document proves the registration. Documents that are not in English or Welsh may also need a certified translation.
+
+IMPORTANT:
+Do not assume that you are ineligible solely because you do not currently have the certificate. Make sure you can provide acceptable evidence of your civil partnership.`
+        );
 
     }
 
+    if (selected.value === "Not sure") {
 
-    if (currentQuestionData.id === "unmarriedPartnerTwoYears") {
+        alert(
+`VERIFY YOUR CIVIL PARTNERSHIP STATUS
+
+Before continuing, confirm whether your relationship has been legally registered as a civil partnership.
+
+A civil partnership is a legally recognised relationship, not simply a relationship in which two people live together or intend to commit to each other.
+
+If your civil partnership has been registered, contact the relevant registration authority to confirm how to obtain official evidence of it.
+
+If you are unsure whether your relationship qualifies as a civil partnership, verify your status before proceeding with this option.`
+        );
+
+        return;
+    }
+
+    dependantQuestionIndex =
+        isGovernmentSponsoredDependantRoute()
+            ? 5
+            : 6;
+
+    renderQuestion();
+    return;
+}
+
+ if (currentQuestionData.id === "unmarriedPartnerTwoYears") {
 
         if (selected.value === "Yes") {
 
@@ -1026,17 +1147,38 @@ If the document is not in English or Welsh, you may need a certified translation
 
     if (currentQuestionData.id === "unmarriedRelationshipEvidence") {
 
-        dependantQuestionIndex =
-    answers.funding ===
-    "I have official financial sponsorship (e.g. government, international company, university, or recognised organisation)"
-    ? 5
-    : 6;
+    if (selected.value === "Other supporting evidence") {
 
-        renderQuestion();
+        alert(
+`OTHER SUPPORTING EVIDENCE
 
-        return;
+You can provide other documents that help demonstrate that your relationship is genuine and ongoing.
+
+Examples include:
+
+• Money transfer receipts or financial support records.
+• Birth certificates of children you share.
+• Flight tickets or travel bookings showing visits to each other.
+• Photographs together taken over time.
+• Call logs, messages or other communication records.
+• Letters or statements from people who know about your relationship.
+
+IMPORTANT:
+These are examples, not a compulsory list. Provide relevant evidence that reflects your circumstances.`
+        );
 
     }
+
+    dependantQuestionIndex =
+        isGovernmentSponsoredDependantRoute()
+            ? 5
+            : 6;
+
+    renderQuestion();
+
+    return;
+
+}
 
 
     if (currentQuestionData.id === "dependantGovernmentMaintenance") {
